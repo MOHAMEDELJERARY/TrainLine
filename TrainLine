@@ -1,0 +1,180 @@
+public class TrainLine {
+
+    private static final String EMPTY_LINE_MESSAGE = "The line is empty.";
+
+    private Station head;
+    private Station tail;
+    private int numberOfStations;
+
+    public TrainLine() {
+        this.head = null;
+        this.tail = null;
+        this.numberOfStations = 0;
+    }
+
+    public int getNumberOfStations() {
+        return this.numberOfStations;
+    }
+
+    public void addStation(String name) {
+        Station newStation = new Station(name);
+        this.addStation(newStation);
+    }
+
+    public void addStation(Station station) {
+        if (this.head == null) {
+            this.head = station;
+            this.tail = station;
+        } else {
+            this.tail.setNext(station);
+            this.tail = station;
+        }
+        this.numberOfStations++;
+    }
+
+    public boolean hasLoop() {
+        boolean loopFound = false;
+        if (this.head != null) {
+            Station fast = this.head;
+            Station slow = this.head;
+            while (!loopFound && fast.hasNext() && fast.getNext().hasNext()) {
+                fast = fast.getNext().getNext();
+                slow = slow.getNext();
+                loopFound = (slow == fast);
+            }
+        }
+        return loopFound;
+    }
+
+    public boolean addAfter(String existingStationName, String stationToAdd) {
+        boolean success = false;
+        if (!this.contains(stationToAdd)
+                && existingStationName != null && existingStationName.length() > 0
+                && stationToAdd != null && stationToAdd.length() > 0) {
+            Station current = this.head;
+            while (current != null) {
+                if (current.getName().equals(existingStationName)) {
+                    Station newStation = new Station(stationToAdd);
+                    newStation.setNext(current.getNext());
+                    current.setNext(newStation);
+                    success = true;
+                }
+            }
+        }
+        return success;
+    }
+
+    public int indexOf(String name) {
+        int position = -1;
+        if (this.head != null) {
+            int counter = 0;
+            Station current = this.head;
+            while (position < 0 && current != null) {
+                position = (current.getName().equals(name)) ? counter : position;
+                counter++;
+                current = current.getNext();
+            }
+        }
+        return position;
+    }
+
+    public boolean contains(String stationName) {
+        return this.indexOf(stationName) > -1;
+    }
+
+    public Station getHead() {
+        return this.head;
+    }
+
+    public Station getTail() {
+        return this.tail;
+    }
+
+    public void append(TrainLine other) {
+        if (other != null && other.getHead() != null) {
+            if (this.head == null) {
+                this.head = other.getHead();
+            } else {
+                this.tail.setNext(other.getHead());
+            }
+            this.tail = other.getTail();
+        }
+    }
+
+    public String listStations() {
+        StringBuilder stationList = new StringBuilder();
+        if (this.head == null) {
+            stationList.append(EMPTY_LINE_MESSAGE);
+        } else {
+            Station current = this.head;
+            while (current != null) {
+                stationList.append(String.format("%s\n", current.getName()));
+                current = current.getNext();
+            }
+        }
+        return stationList.toString();
+    }
+
+    public boolean intersects(TrainLine other) {
+        boolean intersectionFound = this == other;
+        if (!intersectionFound) {
+            intersectionFound = this.head != null && other.getHead() != null;
+            Station thisCurrent = this.head;
+            while (!intersectionFound && thisCurrent != null) {
+                Station otherCurrent = other.getHead();
+                while (!intersectionFound && otherCurrent != null) {
+                    intersectionFound = (thisCurrent.getName().equals(otherCurrent.getName()));
+                    otherCurrent = otherCurrent.getNext();
+                }
+                thisCurrent = thisCurrent.getNext();
+            }
+        }
+        return intersectionFound;
+    }
+
+    public int compareTo(TrainLine other) {
+        return this.numberOfStations - other.getNumberOfStations();
+    }
+
+    // New method to reverse the list of stations
+    public String reverseListStations() {
+        if (this.head == null) {
+            return EMPTY_LINE_MESSAGE; // return message if the line is empty
+        }
+        // Start the recursion with the head station
+        return reverseListStationsHelper(this.head);
+    }
+
+    // Helper method for recursion
+    private String reverseListStationsHelper(Station current) {
+        if (current.getNext() == null) {
+            // Base case: last station reached, return its name with newline
+            return current.getName() + "\n";
+        }
+        // Recursive call: get the reversed list from the next station
+        return reverseListStationsHelper(current.getNext()) + current.getName() + "\n";
+    }
+}
+
+// Station class definition
+class Station {
+    private String name;
+    private Station next;
+
+    public Station(String name) {
+        this.name = name;
+        this.next = null;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Station getNext() {
+        return next;
+    }
+
+    public void setNext(Station next) {
+        this.next = next;
+    }
+}
